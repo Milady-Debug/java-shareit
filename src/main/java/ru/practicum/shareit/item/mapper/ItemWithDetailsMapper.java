@@ -9,8 +9,8 @@ import ru.practicum.shareit.item.dto.ItemWithBookingsAndCommentsDto;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.model.Comment;
 
-import java.util.List;
 import java.util.stream.Collectors;
+import java.util.List;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ItemWithDetailsMapper {
