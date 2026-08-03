@@ -2,8 +2,6 @@ package ru.practicum.shareit.item.service;
 
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.repository.BookingRepository;
@@ -151,20 +149,16 @@ public class ItemServiceImpl implements ItemService {
     public ItemWithBookingsAndCommentsDto getItemWithDetails(Long itemId, Long userId) {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new NotFoundException("Вещь не найдена"));
-
-        // Комментарии
         List<Comment> comments = commentRepository.findAllByItemId(itemId);
 
-        // Бронирования показываем только владельцу
         Booking lastBooking = null;
         Booking nextBooking = null;
         if (item.getOwner().getId().equals(userId)) {
-            Pageable pageable = PageRequest.of(0, 1);
-            List<Booking> lastList = bookingRepository.findLastBookingsByItem(itemId, pageable);
+            List<Booking> lastList = bookingRepository.findLastBookingsByItem(itemId);
             if (!lastList.isEmpty()) {
                 lastBooking = lastList.get(0);
             }
-            List<Booking> nextList = bookingRepository.findNextBookingsByItem(itemId, pageable);
+            List<Booking> nextList = bookingRepository.findNextBookingsByItem(itemId);
             if (!nextList.isEmpty()) {
                 nextBooking = nextList.get(0);
             }
@@ -183,14 +177,13 @@ public class ItemServiceImpl implements ItemService {
         return items.stream()
                 .map(item -> {
                     List<Comment> comments = commentRepository.findAllByItemId(item.getId());
-                    Pageable pageable = PageRequest.of(0, 1);
                     Booking lastBooking = null;
                     Booking nextBooking = null;
-                    List<Booking> lastList = bookingRepository.findLastBookingsByItem(item.getId(), pageable);
+                    List<Booking> lastList = bookingRepository.findLastBookingsByItem(item.getId());
                     if (!lastList.isEmpty()) {
                         lastBooking = lastList.get(0);
                     }
-                    List<Booking> nextList = bookingRepository.findNextBookingsByItem(item.getId(), pageable);
+                    List<Booking> nextList = bookingRepository.findNextBookingsByItem(item.getId());
                     if (!nextList.isEmpty()) {
                         nextBooking = nextList.get(0);
                     }
@@ -198,5 +191,4 @@ public class ItemServiceImpl implements ItemService {
                 })
                 .collect(Collectors.toList());
     }
-
 }

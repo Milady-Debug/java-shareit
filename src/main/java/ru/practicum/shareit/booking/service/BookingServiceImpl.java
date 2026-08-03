@@ -81,60 +81,46 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public List<BookingResponseDto> getBookingsForCurrentUser(Long userId, BookingState state) {
         userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Пользователь не найден"));
-        LocalDateTime now = LocalDateTime.now();
-        List<Booking> bookings;
-        switch (state) {
-            case ALL:
-                bookings = bookingRepository.findAllByBookerIdOrderByStartDesc(userId);
-                break;
-            case WAITING:
-                bookings = bookingRepository.findByBookerIdAndStatusOrderByStartDesc(userId, Status.WAITING);
-                break;
-            case REJECTED:
-                bookings = bookingRepository.findByBookerIdAndStatusOrderByStartDesc(userId, Status.REJECTED);
-                break;
-            case CURRENT:
-                bookings = bookingRepository.findCurrentByBooker(userId, now);
-                break;
-            case PAST:
-                bookings = bookingRepository.findByBookerIdAndEndBeforeOrderByStartDesc(userId, now);
-                break;
-            case FUTURE:
-                bookings = bookingRepository.findByBookerIdAndStartAfterOrderByStartDesc(userId, now);
-                break;
-            default:
-                throw new IllegalArgumentException("Неподдерживаемый state: " + state);
-        }
+        List<Booking> bookings = getBookingsByState(userId, state, false);
         return bookings.stream().map(BookingMapper::toBookingResponse).collect(Collectors.toList());
     }
 
     @Override
     public List<BookingResponseDto> getBookingsForOwner(Long userId, BookingState state) {
         userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Пользователь не найден"));
+        List<Booking> bookings = getBookingsByState(userId, state, true);
+        return bookings.stream().map(BookingMapper::toBookingResponse).collect(Collectors.toList());
+    }
+
+    private List<Booking> getBookingsByState(Long userId, BookingState state, boolean isOwner) {
         LocalDateTime now = LocalDateTime.now();
-        List<Booking> bookings;
         switch (state) {
             case ALL:
-                bookings = bookingRepository.findAllByOwnerId(userId);
-                break;
+                return isOwner
+                        ? bookingRepository.findAllByOwnerId(userId)
+                        : bookingRepository.findAllByBookerIdOrderByStartDesc(userId);
             case WAITING:
-                bookings = bookingRepository.findByOwnerIdAndStatus(userId, Status.WAITING);
-                break;
+                return isOwner
+                        ? bookingRepository.findByOwnerIdAndStatus(userId, Status.WAITING)
+                        : bookingRepository.findByBookerIdAndStatusOrderByStartDesc(userId, Status.WAITING);
             case REJECTED:
-                bookings = bookingRepository.findByOwnerIdAndStatus(userId, Status.REJECTED);
-                break;
+                return isOwner
+                        ? bookingRepository.findByOwnerIdAndStatus(userId, Status.REJECTED)
+                        : bookingRepository.findByBookerIdAndStatusOrderByStartDesc(userId, Status.REJECTED);
             case CURRENT:
-                bookings = bookingRepository.findCurrentByOwner(userId, now);
-                break;
+                return isOwner
+                        ? bookingRepository.findCurrentByOwner(userId, now)
+                        : bookingRepository.findCurrentByBooker(userId, now);
             case PAST:
-                bookings = bookingRepository.findPastByOwner(userId, now);
-                break;
+                return isOwner
+                        ? bookingRepository.findPastByOwner(userId, now)
+                        : bookingRepository.findByBookerIdAndEndBeforeOrderByStartDesc(userId, now);
             case FUTURE:
-                bookings = bookingRepository.findFutureByOwner(userId, now);
-                break;
+                return isOwner
+                        ? bookingRepository.findFutureByOwner(userId, now)
+                        : bookingRepository.findByBookerIdAndStartAfterOrderByStartDesc(userId, now);
             default:
                 throw new IllegalArgumentException("Неподдерживаемый state: " + state);
         }
-        return bookings.stream().map(BookingMapper::toBookingResponse).collect(Collectors.toList());
     }
 }
