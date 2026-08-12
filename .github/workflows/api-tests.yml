@@ -5,6 +5,8 @@ on:
   workflow_call:
 
 jobs:
+  build:
+    uses: yandex-praktikum/java-shareit/.github/workflows/api-tests.yml@ci
   check-repo:
     runs-on: ubuntu-latest
 
