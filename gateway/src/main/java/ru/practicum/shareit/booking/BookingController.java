@@ -10,7 +10,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.dto.BookItemRequestDto;
-import ru.practicum.shareit.booking.service.BookingServiceGateway;
+import ru.practicum.shareit.booking.service.BookingGatewayService;
 
 @Controller
 @RequestMapping(path = "/bookings")
@@ -21,7 +21,7 @@ public class BookingController {
 
     private static final String USER_ID_HEADER = "X-Sharer-User-Id";
 
-    private final BookingServiceGateway bookingService;
+    private final BookingGatewayService bookingService;
 
     @GetMapping
     public ResponseEntity<Object> getBookings(@RequestHeader(USER_ID_HEADER) long userId,
